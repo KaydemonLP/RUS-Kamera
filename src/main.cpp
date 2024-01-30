@@ -15,9 +15,7 @@
 
 #define I2C_Freq 100000
 #define I2C_DEV_ADDR 0x10
-//#define LED_PIN 5 //ESP32
-#define FLASH_PIN 4 //ESP32 CAM Flash
-#define LED_PIN 33 //ESP32 CAM LED
+
 
 typedef struct
 {
@@ -45,8 +43,6 @@ struct_message g_messageToSend;
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
-
-#define START_SCAN_BUTTON 4
 
 bool g_bScanButtonPressed = false;
 
@@ -90,9 +86,6 @@ void setup()
   // get the status of Trasnmitted packet
   esp_now_register_send_cb(OnDataSent);
 */
-  pinMode( 12, OUTPUT );
-  pinMode( 13, OUTPUT );
-
   cameraSetup();
   //attachInterrupt(START_SCAN_BUTTON, scanButtonInterrupt, RISING);
 }
@@ -103,7 +96,7 @@ bool g_Scanning = false;
 int g_iScanCount = 0;
 float g_flWastePercentage = 0;
 
-float g_flLastWastePercentage = 0;
+float g_flLastWastePercentage = -1;
 
 void ResetScan()
 {
@@ -126,8 +119,6 @@ void loop()
 
   if( g_Scanning )
   {
-    digitalWrite(13, LOW);
-    digitalWrite(12, HIGH);
     Serial.printf("Taking pic %d\n", g_iScanCount+1);
     g_flWastePercentage += takePic();
 
@@ -143,12 +134,6 @@ void loop()
       ResetScan();
     }
   }
-  else
-  {
-    digitalWrite(13, HIGH);
-    digitalWrite(12, LOW);
-  }
-  delay(10);
 }
 
 void onReceive(int size)
@@ -157,16 +142,28 @@ void onReceive(int size)
     Wire.readBytes((char *)&requestCommand, sizeof(req));
 }
 
+enum {
+  CMD_IS_SCANNING = 2,
+  CMD_START_SCAN,
+  CMD_GET_RESULT
+};
+
 void onRequest()
 {
   switch(requestCommand.command)
   {
-    case 3:
+    case CMD_IS_SCANNING: 
+    {
+      Wire.write((uint8_t *)&g_Scanning,sizeof(bool));
+      break;
+    }
+    case CMD_START_SCAN:
     g_bScanButtonPressed = true;
     break;
-    case 4: 
+    case CMD_GET_RESULT: 
     {
-      Wire.write((uint8_t *)&g_flLastWastePercentage,sizeof(float)); 
+      Wire.write((uint8_t *)&g_flLastWastePercentage,sizeof(float));
+      g_flLastWastePercentage = -1;
       break;
     }
     //case 5: Wire.write((uint8_t *)registers.reg5,5); break;
