@@ -62,32 +62,7 @@ void setup()
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest); 
 
-// Set device as a Wi-Fi Station
-/*  WiFi.mode(WIFI_STA);
-
-  // initialise ESP NOW
-  if (esp_now_init() != ESP_OK) {
-    Serial.println("Error initializing ESP-NOW");
-    return;
-  }
-
-  // Register peer
-  memcpy(g_peerInfo.peer_addr, g_iRecieverAdress, 6);
-  g_peerInfo.channel = 0;
-  g_peerInfo.encrypt = false;
-
-  // Add peer
-  if (esp_now_add_peer(&g_peerInfo) != ESP_OK){
-    Serial.println("Failed to add peer");
-    return;
-  }
-
-  // Once ESPNow is successfully Init, we will register for Send CB to
-  // get the status of Trasnmitted packet
-  esp_now_register_send_cb(OnDataSent);
-*/
   cameraSetup();
-  //attachInterrupt(START_SCAN_BUTTON, scanButtonInterrupt, RISING);
 }
 
 #define SCANS_NEEDED 4
@@ -108,9 +83,6 @@ void ResetScan()
 
 void loop() 
 {
-  //g_messageToSend.m_iCommand = 40;
-  //esp_err_t result = esp_now_send(g_iRecieverAdress, (uint8_t *) &g_messageToSend, sizeof(g_messageToSend));
-
   if( g_bScanButtonPressed )
   {
       g_Scanning = true;
